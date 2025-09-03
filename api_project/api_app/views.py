@@ -2,8 +2,8 @@ from django.shortcuts import get_object_or_404, render
 from rest_framework import  status, generics 
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
-from .models import Persona
-from .serializers import PersonaSerializer# Create your views here.
+from .models import Persona,Tarea
+from .serializers import PersonaSerializer,TareaSerializer# Create your views here.
 
 class PersonaList(generics.ListCreateAPIView):
     queryset = Persona.objects.all()
@@ -64,3 +64,26 @@ class PersonaByDocumento(generics.RetrieveAPIView):
            return Response({'success':False,'detail':'Persona no encontrada'}, status=status.HTTP_404_NOT_FOUND)
        serializer =PersonaSerializer(persona)
        return Response({'success':True,'detail':'Persona encontrada','data':serializer.data}, status=status.HTTP_200_OK)
+    
+class BorrarPersonaPorDocumento(generics.DestroyAPIView):
+    serializer_class = PersonaSerializer
+
+    def delete(self, request, documento):
+        persona = Persona.objects.filter(documento=documento).first()
+        if not persona:
+            return Response(
+                {
+                    'success': False,
+                    'detail': 'Persona no encontrada'
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        persona.delete()
+        return Response(
+            {
+                'success': True,
+                'detail': f'Persona con documento {documento} eliminada con éxito'
+            },
+            status=status.HTTP_200_OK
+        )
